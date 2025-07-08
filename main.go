@@ -2,8 +2,14 @@ package main
 
 import (
   "fmt"
+  "github.com/adibbelel/gator/internal/config"
 )
 
 func main()  {
-  fmt.Println("Hello World!")
+  username := "adib"
+
+  newConfig := config.Read()
+  newConfig.config.SetUser(username)
+  
+  fmt.Printf("%", config.Read)
 }

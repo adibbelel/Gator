@@ -8,14 +8,18 @@ import (
 )
 
 type Config struct {
-  DbURL string `json:"db_url"`
+  DbURL           string `json:"db_url"`
   CurrentUserName string `json:"current_user_name"`
 }
 
 const configFileName = ".gatorconfig.json"
 
 func Read() (Config, error) {
-  data := os.UserHomeDir() + configFileName
+  homeDir, err := os.UserHomeDir()
+  if err != nil {
+    return nil, fmt.Errorf("Error accessing home directory")
+  }
+  data :=  + configFileName
   jsonData, err := ioutil.ReadFile(data)
   if err != nil {
     return nil, fmt.Errorf("Error reading file")
