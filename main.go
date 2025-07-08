@@ -8,8 +8,15 @@ import (
 func main()  {
   username := "adib"
 
-  newConfig := config.Read()
-  newConfig.config.SetUser(username)
+  newConfig, err := config.Read()
+  if err != nil {
+    fmt.Errorf("Error creating new config")
+  }
+  newConfig.SetUser(username)
+  newConfig, err = config.Read()
+  if err != nil {
+    fmt.Errorf("Error rereading config")
+  }
   
-  fmt.Printf("%", config.Read)
+  fmt.Printf("%s, %s\n", newConfig.DbURL, newConfig.CurrentUserName)
 }
