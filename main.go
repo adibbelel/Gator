@@ -7,10 +7,15 @@ import (
 
 func main()  {
   username := "adib"
+  var newState state
 
-  newConfig, err := config.Read()
+  newState.cfg, err := config.Read()
   if err != nil {
     fmt.Errorf("Error creating new config")
+  }
+
+  cmds := commands{
+    registeredCommands: make(map[string]func(*state, commmand))
   }
   newConfig.SetUser(username)
   newConfig, err = config.Read()

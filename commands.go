@@ -2,6 +2,8 @@ package main
 
 import (
   "github.com/adibbelel/gator/internal/config"
+  "errors"
+  "fmt"
 )
 
 type state struct {
@@ -35,7 +37,7 @@ func handlerLogin(s *state, cmd command) error {
 func (c *commands) run(s *state, cmd command) error {
   function, ok := c.registeredCommands[cmd.name]
   if !ok {
-    return fmt.Errorf("command not found")
+    return errors.New("command not found")
   }
   return function(s, cmd)
 }
