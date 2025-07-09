@@ -1,8 +1,9 @@
 package main
 
 import (
-  "fmt"
+  "log"
   "github.com/adibbelel/gator/internal/config"
+  "os"
 )
 
 func main()  {
@@ -11,16 +12,19 @@ func main()  {
 
   newState.cfg, err := config.Read()
   if err != nil {
-    fmt.Errorf("Error creating new config")
+    log.Fatalf("Error creating new config", err)
   }
 
   cmds := commands{
-    registeredCommands: make(map[string]func(*state, commmand))
+    registeredCommands: make(map[string]func(*state, commmand)error),
   }
+
+  cmds.register("login", handlerLogin)
+
   newConfig.SetUser(username)
   newConfig, err = config.Read()
   if err != nil {
-    fmt.Errorf("Error rereading config")
+    log.Fatalf("Error rereading config")
   }
   
   fmt.Printf("%s, %s\n", newConfig.DbURL, newConfig.CurrentUserName)
