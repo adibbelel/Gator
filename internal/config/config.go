@@ -34,7 +34,7 @@ func Read() (Config, error) {
   return config, nil
 }
 
-func (c *Config) SetUser(username string) {
+func (c *Config) SetUser(username string) error {
   c.CurrentUserName = username
   updatedData, err := json.Marshal(c)
   if err != nil {
@@ -43,14 +43,14 @@ func (c *Config) SetUser(username string) {
 
   homeDir, err := os.UserHomeDir()
   if err != nil {
-    fmt.Errorf("Error accessing home directory")
-    return
+    return fmt.Errorf("Error accessing home directory")
   }
   data := homeDir + configFileName
 
   err = ioutil.WriteFile(data, updatedData, 0644)
   if err != nil {
-    fmt.Errorf("Could not update data in json file")
-    return 
+    return fmt.Errorf("Could not update data in json file") 
   }
+
+  return nil
 }

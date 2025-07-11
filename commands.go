@@ -7,7 +7,7 @@ import (
 )
 
 type state struct {
-  cfg *Config 
+  cfg *config.Config 
 }
 
 type command struct {
@@ -15,13 +15,13 @@ type command struct {
   inputs []string
 }
 
-var commands struct {
-  registeredCommands map[string]func(*state, commmand) error
+type commands struct {
+  registeredCommands map[string]func(*state, command) error
 }
 
 func handlerLogin(s *state, cmd command) error {
   if len(cmd.inputs) != 1 {
-    return fmt.Errorf("wrong usage")
+     return fmt.Errorf("wrong usage")
   }
 
   name := cmd.inputs[0]

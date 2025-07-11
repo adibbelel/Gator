@@ -7,25 +7,31 @@ import (
 )
 
 func main()  {
-  username := "adib"
-  var newState state
-
-  newState.cfg, err := config.Read()
+  cfg, err := config.Read()
   if err != nil {
-    log.Fatalf("Error creating new config", err)
+    log.Fatalf("Error reading config", err)
+  }
+
+  newState := &state{
+    cfg: &cfg,
   }
 
   cmds := commands{
-    registeredCommands: make(map[string]func(*state, commmand)error),
+    registeredCommands: make(map[string]func(*state, command)error),
   }
 
   cmds.register("login", handlerLogin)
 
-  newConfig.SetUser(username)
-  newConfig, err = config.Read()
+  if len(os.Args) < 2 {
+    log.Fatal("usage: cli <command>")
+  }
+
+  cmdName := os.Args[1]
+  cmdArgs := os.Args[2:]
+
+  err = cmds.run(newState, command{name: cmdName, inputs: cmdArgs})
   if err != nil {
-    log.Fatalf("Error rereading config")
+    log.Fatal(err)
   }
   
-  fmt.Printf("%s, %s\n", newConfig.DbURL, newConfig.CurrentUserName)
 }
