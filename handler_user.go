@@ -50,12 +50,17 @@ func handlerRegister(s *state, cmd command) error {
 }
 
 func handlerReset (s *state, cmd command) error {
-  err := s.db.ResetTable(context.Background())
+  err := s.db.ResetFeeds(context.Background())
   if err != nil {
-    return errors.New("Could not reset database state")
+    return errors.New("Could not reset Feeds table state")
   }
-  fmt.Println("Table has been successfully reset")
 
+  err = s.db.ResetTable(context.Background())
+  if err != nil {
+    return errors.New("Could not reset Users table state")
+  }
+
+  fmt.Println("Table has been successfully reset")
   return nil
 }
 
@@ -86,3 +91,26 @@ func handlerAgg (s *state, cmd command) error {
   fmt.Printf("%v", rssfeed)
   return nil
 }
+
+func handlerAddFeed (s *state, cmd command) error {
+  if len(cmd.inputs) != 2 {
+     return fmt.Errorf("wrong usage")
+  }
+
+  user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+  if err != nil {
+    return fmt.Errorf("Error getting user: %w\n", err)
+  }
+
+  name := cmd.inputs[0]
+  url := cmd.inputs[1]
+
+  feed, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{ID: uuid.New(), CreatedAt: time.Now(), UpdatedAt: time.Now(), Name: name, Url: url, UserID: user.ID})
+  if err != nil {
+    return fmt.Errorf("Error creating feed: %w", err)
+  }
+
+  fmt.Printf("feed name: %s, feed URL: %s\n", feed.Name, feed.Url)
+  return nil
+}
+
