@@ -5,9 +5,11 @@ import (
   "github.com/adibbelel/gator/internal/config"
   "context"
   "errors"
-  "github.com/google/uuid"
-  "time"
+  "net/http"
   "fmt"
+  "encoding/xml"
+  "html"
+  "io"
 )
 
 type state struct {
@@ -24,45 +26,6 @@ type commands struct {
   registeredCommands map[string]func(*state, command) error
 }
 
-func handlerLogin(s *state, cmd command) error {
-  if len(cmd.inputs) != 1 {
-     return fmt.Errorf("wrong usage")
-  }
-
-  name := cmd.inputs[0]
-
-  _, err := s.db.GetUser(context.Background(), name)
-  if err != nil {
-    return fmt.Errorf("Could not get User: ", err)
-  }
-
-  err = s.cfg.SetUser(name)
-  if err != nil {
-    return fmt.Errorf("Failed to set user") 
-  }
-  fmt.Println("User has been set to -", s.cfg.CurrentUserName)
-  return nil
-}
-
-func handlerRegister(s *state, cmd command) error {
-  if len(cmd.inputs) != 1 {
-     return fmt.Errorf("wrong usage")
-  }
-
-  name := cmd.inputs[0]
-
-  user, err := s.db.CreateUser(context.Background(), database.CreateUserParams{ID: uuid.New(), CreatedAt: time.Now(), UpdatedAt: time.Now(), Name: name})
-  if err != nil {
-    return fmt.Errorf("failed to create new user: ", err)
-  }
-
-  err = s.cfg.SetUser(user.Name)
-  if err != nil {
-    return fmt.Errorf("Failed to set user") 
-  }
-  fmt.Println("User has been set to -", s.cfg.CurrentUserName)
-  return nil
-}
 
 func (c *commands) run(s *state, cmd command) error {
   function, ok := c.registeredCommands[cmd.name]
@@ -72,33 +35,43 @@ func (c *commands) run(s *state, cmd command) error {
   return function(s, cmd)
 }
 
-func handlerReset (s *state, cmd command) error {
-  err := s.db.ResetTable(context.Background())
-  if err != nil {
-    return errors.New("Could not reset database state")
-  }
-  fmt.Println("Table has been successfully reset")
-
-  return nil
-}
-
-func handlerGetUsers (s *state, cmd command) error {
-  users, err := s.db.GetUsers(context.Background())
-  if err != nil {
-    return errors.New("Could not get user data")
-  }
-
-  for _, user := range users {
-    if user.Name == s.cfg.CurrentUserName {
-      fmt.Printf("%s (current) \n", user.Name)
-    } else {
-      fmt.Printf("%s\n", user.Name)
-    }
-  }
-
-  return nil
-}
 
 func (c *commands) register(name string, f func(*state, command) error) {
   c.registeredCommands[name] = f
+}
+
+func fetchFeed (ctx context.Context, feedURL string) (*RSSFeed, error) {
+  var rssfeed RSSFeed
+
+  req, err := http.NewRequestWithContext(ctx, "GET", feedURL, nil)
+  if err != nil {
+    return &rssfeed, errors.New("Error creating http request")
+  }
+
+  req.Header.Set("User-Agent", "gator")
+
+  client := &http.Client{}
+  res, err := client.Do(req)
+  if err != nil {
+    return &rssfeed, fmt.Errorf("Error sending request: %w", err)
+  }
+  defer res.Body.Close()
+
+  body, err := io.ReadAll(res.Body)
+  if err != nil {
+    return &rssfeed, fmt.Errorf("Error reading response body %w", err)
+  }
+
+  if err := xml.Unmarshal(body, &rssfeed); err != nil {
+    return &rssfeed, fmt.Errorf("Error unmarshalling body: %w\n", err)
+  }
+
+  rssfeed.Channel.Title = html.UnescapeString(rssfeed.Channel.Title)
+  rssfeed.Channel.Description = html.UnescapeString(rssfeed.Channel.Description)
+  for _, items := range rssfeed.Channel.Item {
+    items.Title = html.UnescapeString(items.Title)
+    items.Description = html.UnescapeString(items.Description)
+  }
+
+  return &rssfeed, nil
 }
