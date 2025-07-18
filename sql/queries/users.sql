@@ -13,3 +13,7 @@ SELECT * FROM users WHERE name = $1;
 
 -- name: ResetTable :exec
 DELETE FROM users;
+
+-- name: GetUsers :many
+SELECT * FROM users
+ORDER BY created_at DESC;
