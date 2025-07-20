@@ -15,3 +15,4 @@ CREATE TABLE feeds (
 -- +goose StatementBegin
 DROP TABLE feeds;
 -- +goose StatementEnd
+

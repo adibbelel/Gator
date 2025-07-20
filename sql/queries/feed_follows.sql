@@ -18,8 +18,14 @@ FROM inserted_feed_follow iff
 JOIN users ON iff.user_id = users.id
 JOIN feeds ON iff.feed_id = feeds.id;
 
--- name: ResetFeedFollow :exec
-DELETE FROM feed_follows;
+-- name: DeleteFeedFollow :exec
+WITH deleted_feeds AS (
+    DELETE FROM feeds 
+    WHERE url = $1
+    RETURNING id
+)
+DELETE FROM feed_follows
+WHERE feed_id IN (SELECT id FROM deleted_feeds);
 
 -- name: GetFeedFollowsForUser :many
 SELECT 

@@ -8,17 +8,12 @@ import (
   "fmt"
 )
 
-func handlerFollow (s *state, cmd command) error {
+func handlerFollow (s *state, cmd command, user database.User) error {
   if len(cmd.inputs) != 1 {
      return fmt.Errorf("wrong usage")
   }
 
   Url := cmd.inputs[0]
-
-  user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-  if err != nil {
-    return fmt.Errorf("Error getting user: %w\n", err)
-  }
 
   feed, err := s.db.GetFeed(context.Background(), Url)
   if err != nil {
@@ -34,12 +29,7 @@ func handlerFollow (s *state, cmd command) error {
   return nil
 }
 
-func handlerFollowing (s *state, cmd command) error {
-  user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-  if err != nil {
-    return fmt.Errorf("Error getting user: %w\n", err)
-  }
-
+func handlerFollowing (s *state, cmd command, user database.User) error {
   ffu, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
   if err != nil {
     return fmt.Errorf("Error getting feed follows: %w\n", err)
@@ -52,4 +42,18 @@ func handlerFollowing (s *state, cmd command) error {
   return nil
 }
 
-  
+ 
+func handlerUnfollow (s *state, cmd command, user database.User) error {
+  if len(cmd.inputs) != 1 {
+     return fmt.Errorf("wrong usage")
+  }
+
+  Url := cmd.inputs[0]
+
+  err := s.db.DeleteFeedFollow(context.Background(), Url)
+  if err != nil {
+    return fmt.Errorf("Error Unfollowing feed: ", err)
+  }
+
+  return nil
+}

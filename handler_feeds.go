@@ -19,14 +19,9 @@ func handlerAgg (s *state, cmd command) error {
   return nil
 }
 
-func handlerAddFeed (s *state, cmd command) error {
+func handlerAddFeed (s *state, cmd command, user database.User) error {
   if len(cmd.inputs) != 2 {
      return fmt.Errorf("wrong usage")
-  }
-
-  user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-  if err != nil {
-    return fmt.Errorf("Error getting user: %w\n", err)
   }
 
   name := cmd.inputs[0]
