@@ -8,17 +8,6 @@ import (
   "fmt"
 )
 
-func handlerAgg (s *state, cmd command) error {
-  url := "https://www.wagslane.dev/index.xml"
-  rssfeed, err := fetchFeed(context.Background(), url)
-  if err != nil {
-    return fmt.Errorf("Error fetching RSSFeed %w\n", err)
-  }
-
-  fmt.Printf("%v", rssfeed)
-  return nil
-}
-
 func handlerAddFeed (s *state, cmd command, user database.User) error {
   if len(cmd.inputs) != 2 {
      return fmt.Errorf("wrong usage")

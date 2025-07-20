@@ -67,7 +67,7 @@ func handlerReset (s *state, cmd command) error {
 func handlerGetUsers (s *state, cmd command) error {
   users, err := s.db.GetUsers(context.Background())
   if err != nil {
-    return errors.New("Could not get user data")
+  return errors.New("Could not get user data")
   }
 
   for _, user := range users {
